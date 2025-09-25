@@ -11,11 +11,27 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get today and tomorrow
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    
+    // Get the current week's school days (Monday-Friday)
+    const getWeekDates = () => {
+      const today = new Date();
+      const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+      
+      // Find Monday of current week
+      const monday = new Date(today);
+      const daysFromMonday = currentDay === 0 ? -6 : 1 - currentDay; // If Sunday, go back 6 days
+      monday.setDate(today.getDate() + daysFromMonday);
+      
+      // Generate Monday through Friday
+      const weekDates = [];
+      for (let i = 0; i < 5; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        weekDates.push(date);
+      }
+      
+      return weekDates;
+    };
+
     const formatApiDate = (date) => {
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
@@ -23,10 +39,11 @@ export default async function handler(req, res) {
       return `${month}-${day}-${year}`;
     };
 
-    const dates = [today, tomorrow];
+    const weekDates = getWeekDates();
     const weekMenuData = [];
     
-    for (const date of dates) {
+    // Fetch menu data for each day
+    for (const date of weekDates) {
       const apiDate = formatApiDate(date);
       const apiUrl = `https://api.mealviewer.com/api/v4/school/SomersetES/${apiDate}/${apiDate}/`;
       
@@ -57,7 +74,7 @@ export default async function handler(req, res) {
             }),
             data: null,
             success: false,
-            error: `No data available`
+            error: 'No menu available'
           });
         }
       } catch (dayError) {
@@ -80,7 +97,7 @@ export default async function handler(req, res) {
       success: true,
       weekData: weekMenuData,
       fetchedAt: new Date().toISOString(),
-      weekOf: today.toLocaleDateString('en-US', { 
+      weekOf: weekDates[0].toLocaleDateString('en-US', { 
         month: 'long', 
         day: 'numeric',
         year: 'numeric'
