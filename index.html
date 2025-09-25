@@ -234,12 +234,12 @@
     <div class="container">
         <div class="header">
             <h1>🍽️ Somerset Elementary School</h1>
-            <div class="week-of" id="week-of">Lunch Menu</div>
+            <div class="week-of" id="week-of">Main Dishes</div>
         </div>
 
         <div id="loading" class="loading">
             <div class="spinner"></div>
-            <p>Loading lunch menus...</p>
+            <p>Loading main dishes...</p>
         </div>
 
         <div id="lunch-content" class="lunch-content" style="display: none;">
@@ -352,7 +352,7 @@
             const contentElement = document.getElementById('lunch-content');
             const loadingElement = document.getElementById('loading');
 
-            weekOfElement.textContent = `Lunch Menu - ${weeklyData.weekOf}`;
+            weekOfElement.textContent = `Main Dishes - ${weeklyData.weekOf}`;
             contentElement.innerHTML = '';
 
             weeklyData.weekData.forEach(dayData => {
@@ -368,7 +368,7 @@
                 `;
 
                 if (!dayData.success || !dayData.data?.menuSchedules?.length) {
-                    dayHTML += '<div class="no-menu">No lunch menu available</div>';
+                    dayHTML += '<div class="no-menu">No main dishes available</div>';
                 } else {
                     const menuSchedule = dayData.data.menuSchedules[0];
                     const lunchBlocks = menuSchedule.menuBlocks.filter(block => 
@@ -384,7 +384,10 @@
                                 block.cafeteriaLineList.data.forEach(line => {
                                     if (line.foodItemList?.data) {
                                         line.foodItemList.data.forEach(item => {
-                                            itemsHTML += buildMenuItem(item);
+                                            // Only show main dishes (entrees)
+                                            if (item.item_Type && item.item_Type.toLowerCase() === 'entree') {
+                                                itemsHTML += buildMenuItem(item);
+                                            }
                                         });
                                     }
                                 });
@@ -394,7 +397,7 @@
                         if (itemsHTML) {
                             dayHTML += `<div class="lunch-items">${itemsHTML}</div>`;
                         } else {
-                            dayHTML += '<div class="no-menu">No lunch items available</div>';
+                            dayHTML += '<div class="no-menu">No main dishes available</div>';
                         }
                     }
                 }
@@ -413,7 +416,7 @@
             
             contentElement.innerHTML = `
                 <div class="error">
-                    <h3>🚫 Unable to Load Lunch Menu</h3>
+                    <h3>🚫 Unable to Load Main Dishes</h3>
                     <p>${message}</p>
                     <button onclick="loadLunchMenu()" style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
                         🔄 Try Again
