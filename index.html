@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Somerset ES Weekly Menu</title>
+    <title>Somerset ES Lunch Menu</title>
     <style>
         * {
             margin: 0;
@@ -20,7 +20,7 @@
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1000px;
             margin: 0 auto;
             background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
@@ -33,7 +33,6 @@
             color: white;
             padding: 25px;
             text-align: center;
-            position: relative;
         }
 
         .header h1 {
@@ -81,10 +80,10 @@
             100% { transform: rotate(360deg); }
         }
 
-        .weekly-content {
+        .lunch-content {
             padding: 20px;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
 
@@ -108,7 +107,7 @@
         .day-header {
             padding: 15px;
             color: white;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: bold;
             text-align: center;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -118,54 +117,29 @@
             background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
         }
 
-        .meal-block {
-            margin: 15px;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .meal-block-header {
-            padding: 12px;
-            color: white;
-            font-size: 0.95rem;
-            font-weight: bold;
-            text-align: center;
-        }
-
-        .breakfast-header {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
-        }
-
-        .lunch-header {
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-        }
-
-        .meal-items {
-            background: #f8f9fa;
-            padding: 8px;
+        .lunch-items {
+            padding: 15px;
         }
 
         .menu-item {
-            padding: 8px 10px;
-            margin: 3px 0;
-            background: white;
-            border-radius: 5px;
-            font-size: 0.85rem;
-            border-left: 3px solid #dee2e6;
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #dee2e6;
             display: flex;
             align-items: center;
         }
 
         .item-icon {
-            width: 25px;
-            height: 25px;
-            border-radius: 5px;
-            margin-right: 8px;
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            margin-right: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.9rem;
+            font-size: 1.2rem;
             flex-shrink: 0;
         }
 
@@ -178,26 +152,26 @@
             flex-grow: 1;
         }
 
-        .item-details h4 {
-            font-size: 0.8rem;
-            margin-bottom: 3px;
+        .item-details h3 {
+            font-size: 1rem;
+            margin-bottom: 5px;
             color: #333;
-            line-height: 1.2;
+            line-height: 1.3;
         }
 
         .item-badges {
             display: flex;
             flex-wrap: wrap;
-            gap: 2px;
-            margin-top: 2px;
+            gap: 4px;
+            margin-top: 5px;
         }
 
         .badge {
             background: #e9ecef;
             color: #495057;
-            padding: 1px 4px;
-            border-radius: 8px;
-            font-size: 0.65rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.7rem;
             font-weight: 500;
         }
 
@@ -207,39 +181,35 @@
         .badge.whole-grain { background: #f8d7da; color: #721c24; }
 
         .nutrition {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             color: #666;
-            margin-top: 2px;
+            margin-top: 3px;
         }
 
         .no-menu {
-            padding: 20px;
+            padding: 30px;
             text-align: center;
             color: #666;
             font-style: italic;
         }
 
-        .price-info {
-            display: none;
-        }
-
         .last-updated {
             text-align: center;
-            padding: 10px;
+            padding: 15px;
             color: #666;
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             background: #f8f9fa;
             border-top: 1px solid #e9ecef;
         }
 
         .error {
             text-align: center;
-            padding: 30px;
+            padding: 40px;
             color: #dc3545;
         }
 
         @media (max-width: 768px) {
-            .weekly-content {
+            .lunch-content {
                 grid-template-columns: 1fr;
                 padding: 15px;
             }
@@ -256,30 +226,24 @@
                 width: fit-content;
             }
         }
-
-        @media (min-width: 1200px) {
-            .weekly-content {
-                grid-template-columns: repeat(5, 1fr);
-            }
-        }
     </style>
 </head>
 <body>
-    <div class="status-indicator" id="status-indicator">🟢 Live Weekly Data</div>
+    <div class="status-indicator" id="status-indicator">🟢 Live Lunch Data</div>
     
     <div class="container">
         <div class="header">
             <h1>🍽️ Somerset Elementary School</h1>
-            <div class="week-of" id="week-of">Weekly Lunch Menu</div>
+            <div class="week-of" id="week-of">Lunch Menu</div>
         </div>
 
         <div id="loading" class="loading">
             <div class="spinner"></div>
-            <p>Loading weekly lunch menu from server...</p>
+            <p>Loading lunch menus...</p>
         </div>
 
-        <div id="weekly-content" class="weekly-content" style="display: none;">
-            <!-- Weekly menu content will be loaded here -->
+        <div id="lunch-content" class="lunch-content" style="display: none;">
+            <!-- Lunch content will be loaded here -->
         </div>
 
         <div class="last-updated" id="last-updated">
@@ -288,11 +252,9 @@
     </div>
 
     <script>
-        // Get the base URL for the Netlify function
         const BASE_URL = window.location.origin;
         const FUNCTION_URL = `${BASE_URL}/.netlify/functions/menu`;
         
-        // Utility functions
         function updateStatus(type, message) {
             const indicator = document.getElementById('status-indicator');
             indicator.textContent = message;
@@ -332,15 +294,8 @@
             }
         }
 
-        function getAllergenText(allergens) {
-            if (!allergens || allergens.length === 0) return '';
-            const allergenNames = allergens.map(a => a.name).join(', ');
-            return `Contains: ${allergenNames}`;
-        }
-
         function buildMenuItem(item) {
             const calories = item.nutritionals?.find(n => n.name === 'Calories')?.value || 0;
-            const allergenText = getAllergenText(item.allergens);
             const nutritionText = calories > 0 ? `${calories} cal` : '';
             
             const badges = (item.badges || [])
@@ -352,7 +307,7 @@
                 <div class="menu-item">
                     <div class="item-icon ${item.item_Type.toLowerCase()}-icon">${getItemIcon(item.item_Type)}</div>
                     <div class="item-details">
-                        <h4>${item.item_Name}</h4>
+                        <h3>${item.item_Name}</h3>
                         <div class="item-badges">${badges}</div>
                         ${nutritionText ? `<div class="nutrition">${nutritionText}</div>` : ''}
                     </div>
@@ -367,8 +322,8 @@
             return today.toDateString() === itemDate.toDateString();
         }
 
-        async function fetchWeeklyMenu() {
-            updateStatus('loading', '🔄 Fetching weekly menu...');
+        async function fetchLunchMenu() {
+            updateStatus('loading', '🔄 Fetching lunch menus...');
             
             try {
                 const response = await fetch(FUNCTION_URL);
@@ -383,7 +338,7 @@
                     throw new Error(result.error || 'Unknown server error');
                 }
                 
-                updateStatus('success', '🟢 Live weekly data loaded');
+                updateStatus('success', '🟢 Live lunch data loaded');
                 return result;
                 
             } catch (error) {
@@ -392,18 +347,14 @@
             }
         }
 
-        function displayWeeklyMenu(weeklyData) {
+        function displayLunchMenu(weeklyData) {
             const weekOfElement = document.getElementById('week-of');
-            const contentElement = document.getElementById('weekly-content');
+            const contentElement = document.getElementById('lunch-content');
             const loadingElement = document.getElementById('loading');
 
-            // Update week header
-            weekOfElement.textContent = `Week of ${weeklyData.weekOf}`;
-
-            // Clear content
+            weekOfElement.textContent = `Lunch Menu - ${weeklyData.weekOf}`;
             contentElement.innerHTML = '';
 
-            // Build each day
             weeklyData.weekData.forEach(dayData => {
                 const todayClass = isToday(dayData.date) ? 'today' : '';
                 const dayHeaderClass = isToday(dayData.date) ? 'today' : '';
@@ -420,8 +371,6 @@
                     dayHTML += '<div class="no-menu">No lunch menu available</div>';
                 } else {
                     const menuSchedule = dayData.data.menuSchedules[0];
-                    
-                    // Only show lunch blocks
                     const lunchBlocks = menuSchedule.menuBlocks.filter(block => 
                         block.blockName.toLowerCase() === 'lunch'
                     );
@@ -429,8 +378,8 @@
                     if (lunchBlocks.length === 0) {
                         dayHTML += '<div class="no-menu">No lunch menu available</div>';
                     } else {
+                        let itemsHTML = '';
                         lunchBlocks.forEach(block => {
-                            let itemsHTML = '';
                             if (block.cafeteriaLineList?.data) {
                                 block.cafeteriaLineList.data.forEach(line => {
                                     if (line.foodItemList?.data) {
@@ -440,20 +389,13 @@
                                     }
                                 });
                             }
-
-                            if (itemsHTML) {
-                                dayHTML += `
-                                    <div class="meal-block">
-                                        <div class="meal-block-header lunch-header">
-                                            🍽️ Lunch Menu
-                                        </div>
-                                        <div class="meal-items">
-                                            ${itemsHTML}
-                                        </div>
-                                    </div>
-                                `;
-                            }
                         });
+
+                        if (itemsHTML) {
+                            dayHTML += `<div class="lunch-items">${itemsHTML}</div>`;
+                        } else {
+                            dayHTML += '<div class="no-menu">No lunch items available</div>';
+                        }
                     }
                 }
 
@@ -461,41 +403,19 @@
                 contentElement.innerHTML += dayHTML;
             });
 
-            // Add price info (show lunch price only)
-            const firstDayWithData = weeklyData.weekData.find(d => d.success && d.data?.schoolPriceInfo);
-            if (firstDayWithData?.data?.schoolPriceInfo) {
-                const lunchPrice = firstDayWithData.data.schoolPriceInfo.find(price => 
-                    price.name.toLowerCase() === 'lunch'
-                );
-
-                if (lunchPrice) {
-                    priceInfoElement.innerHTML = `
-                        <h3>💰 Lunch Price</h3>
-                        <div class="prices">
-                            <div class="price-item">
-                                <div class="meal-name">${lunchPrice.name}</div>
-                                <div class="price">${lunchPrice.price.toFixed(2)}</div>
-                            </div>
-                        </div>
-                    `;
-                    priceInfoElement.style.display = 'block';
-                }
-            }
-
-            // Show content
             loadingElement.style.display = 'none';
             contentElement.style.display = 'grid';
         }
 
         function displayError(message) {
-            const contentElement = document.getElementById('weekly-content');
+            const contentElement = document.getElementById('lunch-content');
             const loadingElement = document.getElementById('loading');
             
             contentElement.innerHTML = `
                 <div class="error">
-                    <h3>🚫 Unable to Load Weekly Lunch Menu</h3>
+                    <h3>🚫 Unable to Load Lunch Menu</h3>
                     <p>${message}</p>
-                    <button onclick="loadWeeklyMenu()" style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    <button onclick="loadLunchMenu()" style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
                         🔄 Try Again
                     </button>
                 </div>
@@ -505,29 +425,28 @@
             contentElement.style.display = 'grid';
         }
 
-        async function loadWeeklyMenu() {
+        async function loadLunchMenu() {
             try {
-                const weeklyData = await fetchWeeklyMenu();
-                displayWeeklyMenu(weeklyData);
+                const weeklyData = await fetchLunchMenu();
+                displayLunchMenu(weeklyData);
                 
                 document.getElementById('update-time').textContent = new Date().toLocaleTimeString();
                 
             } catch (error) {
-                console.error('Error loading weekly menu:', error);
+                console.error('Error loading lunch menu:', error);
                 displayError(error.message);
                 document.getElementById('update-time').textContent = new Date().toLocaleTimeString() + ' (error)';
             }
         }
 
         // Initial load
-        loadWeeklyMenu();
+        loadLunchMenu();
 
         // Auto-refresh every 2 hours
-        setInterval(loadWeeklyMenu, 2 * 60 * 60 * 1000);
+        setInterval(loadLunchMenu, 2 * 60 * 60 * 1000);
 
         // Manual refresh
-        window.refreshMenu = loadWeeklyMenu;
+        window.refreshMenu = loadLunchMenu;
     </script>
 </body>
 </html>
-```
