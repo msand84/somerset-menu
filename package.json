@@ -10,7 +10,7 @@
   "version": "1.0.0",\
   "description": "Somerset Elementary School Menu Display",\
   "main": "index.html",\
-  "scripts": \{\
-    "build": "echo 'No build step required'"\
+  "engines": \{\
+    "node": "18.x"\
   \}\
 \}}
