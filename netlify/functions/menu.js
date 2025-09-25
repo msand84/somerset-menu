@@ -5,27 +5,13 @@ exports.handler = async (event, context) => {
   };
 
   try {
-    // Get the current week's school days (Monday-Friday)
-    const getWeekDates = () => {
-      const today = new Date();
-      const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
-      
-      // Find Monday of current week
-      const monday = new Date(today);
-      const daysFromMonday = currentDay === 0 ? -6 : 1 - currentDay; // If Sunday, go back 6 days
-      monday.setDate(today.getDate() + daysFromMonday);
-      
-      // Generate Monday through Friday
-      const weekDates = [];
-      for (let i = 0; i < 5; i++) {
-        const date = new Date(monday);
-        date.setDate(monday.getDate() + i);
-        weekDates.push(date);
-      }
-      
-      return weekDates;
-    };
-
+    console.log('Weekly function started');
+    
+    // Get today and tomorrow only (simpler test)
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    
     const formatApiDate = (date) => {
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
@@ -33,19 +19,20 @@ exports.handler = async (event, context) => {
       return `${month}-${day}-${year}`;
     };
 
-    const weekDates = getWeekDates();
-    console.log(`Fetching menu for week: ${weekDates.map(d => formatApiDate(d)).join(', ')}`);
-    
-    // Fetch menu data for each day
+    const dates = [today, tomorrow];
     const weekMenuData = [];
     
-    for (const date of weekDates) {
+    console.log('Fetching 2 days of data...');
+    
+    for (const date of dates) {
       const apiDate = formatApiDate(date);
       const apiUrl = `https://api.mealviewer.com/api/v4/school/SomersetES/${apiDate}/${apiDate}/`;
       
+      console.log(`Trying to fetch: ${apiUrl}`);
+      
       try {
-        console.log(`Fetching: ${apiUrl}`);
         const response = await fetch(apiUrl);
+        console.log(`Response status for ${apiDate}: ${response.status}`);
         
         if (response.ok) {
           const dayData = await response.json();
@@ -60,8 +47,8 @@ exports.handler = async (event, context) => {
             data: dayData,
             success: true
           });
+          console.log(`Successfully got data for ${apiDate}`);
         } else {
-          console.log(`No data for ${apiDate} (${response.status})`);
           weekMenuData.push({
             date: apiDate,
             dayName: date.toLocaleDateString('en-US', { weekday: 'long' }),
@@ -72,11 +59,12 @@ exports.handler = async (event, context) => {
             }),
             data: null,
             success: false,
-            error: `No menu available (${response.status})`
+            error: `No data available`
           });
+          console.log(`No data for ${apiDate}`);
         }
       } catch (dayError) {
-        console.error(`Error fetching ${apiDate}:`, dayError.message);
+        console.error(`Day error for ${apiDate}:`, dayError);
         weekMenuData.push({
           date: apiDate,
           dayName: date.toLocaleDateString('en-US', { weekday: 'long' }),
@@ -87,12 +75,12 @@ exports.handler = async (event, context) => {
           }),
           data: null,
           success: false,
-          error: dayError.message
+          error: 'Fetch failed'
         });
       }
     }
 
-    console.log('Weekly menu data fetched successfully');
+    console.log('Returning weekly data...');
 
     return {
       statusCode: 200,
@@ -101,7 +89,7 @@ exports.handler = async (event, context) => {
         success: true,
         weekData: weekMenuData,
         fetchedAt: new Date().toISOString(),
-        weekOf: weekDates[0].toLocaleDateString('en-US', { 
+        weekOf: today.toLocaleDateString('en-US', { 
           month: 'long', 
           day: 'numeric',
           year: 'numeric'
@@ -110,7 +98,7 @@ exports.handler = async (event, context) => {
     };
 
   } catch (error) {
-    console.error('Function error:', error.message);
+    console.error('Main function error:', error);
     
     return {
       statusCode: 500,
