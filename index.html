@@ -220,42 +220,7 @@
         }
 
         .price-info {
-            background: #f8f9fa;
-            padding: 15px;
-            margin: 15px 20px;
-            border-radius: 8px;
-            text-align: center;
-            border: 2px solid #e9ecef;
-        }
-
-        .price-info h3 {
-            margin-bottom: 10px;
-            color: #333;
-            font-size: 1rem;
-        }
-
-        .prices {
-            display: flex;
-            justify-content: space-around;
-            gap: 10px;
-        }
-
-        .price-item {
-            text-align: center;
-            flex: 1;
-        }
-
-        .price-item .meal-name {
-            font-weight: bold;
-            color: #495057;
-            margin-bottom: 3px;
-            font-size: 0.85rem;
-        }
-
-        .price-item .price {
-            font-size: 1rem;
-            color: #28a745;
-            font-weight: bold;
+            display: none;
         }
 
         .last-updated {
@@ -304,21 +269,17 @@
     
     <div class="container">
         <div class="header">
-            <h1>🍎 Somerset Elementary School</h1>
-            <div class="week-of" id="week-of">Weekly Menu</div>
+            <h1>🍽️ Somerset Elementary School</h1>
+            <div class="week-of" id="week-of">Weekly Lunch Menu</div>
         </div>
 
         <div id="loading" class="loading">
             <div class="spinner"></div>
-            <p>Loading weekly menu from server...</p>
+            <p>Loading weekly lunch menu from server...</p>
         </div>
 
         <div id="weekly-content" class="weekly-content" style="display: none;">
             <!-- Weekly menu content will be loaded here -->
-        </div>
-
-        <div id="price-info" class="price-info" style="display: none;">
-            <!-- Price info will be loaded here -->
         </div>
 
         <div class="last-updated" id="last-updated">
@@ -434,7 +395,6 @@
         function displayWeeklyMenu(weeklyData) {
             const weekOfElement = document.getElementById('week-of');
             const contentElement = document.getElementById('weekly-content');
-            const priceInfoElement = document.getElementById('price-info');
             const loadingElement = document.getElementById('loading');
 
             // Update week header
@@ -457,59 +417,69 @@
                 `;
 
                 if (!dayData.success || !dayData.data?.menuSchedules?.length) {
-                    dayHTML += '<div class="no-menu">No menu available</div>';
+                    dayHTML += '<div class="no-menu">No lunch menu available</div>';
                 } else {
                     const menuSchedule = dayData.data.menuSchedules[0];
                     
-                    menuSchedule.menuBlocks.forEach(block => {
-                        const blockClass = block.blockName.toLowerCase();
-                        
-                        let itemsHTML = '';
-                        if (block.cafeteriaLineList?.data) {
-                            block.cafeteriaLineList.data.forEach(line => {
-                                if (line.foodItemList?.data) {
-                                    line.foodItemList.data.forEach(item => {
-                                        itemsHTML += buildMenuItem(item);
-                                    });
-                                }
-                            });
-                        }
+                    // Only show lunch blocks
+                    const lunchBlocks = menuSchedule.menuBlocks.filter(block => 
+                        block.blockName.toLowerCase() === 'lunch'
+                    );
+                    
+                    if (lunchBlocks.length === 0) {
+                        dayHTML += '<div class="no-menu">No lunch menu available</div>';
+                    } else {
+                        lunchBlocks.forEach(block => {
+                            let itemsHTML = '';
+                            if (block.cafeteriaLineList?.data) {
+                                block.cafeteriaLineList.data.forEach(line => {
+                                    if (line.foodItemList?.data) {
+                                        line.foodItemList.data.forEach(item => {
+                                            itemsHTML += buildMenuItem(item);
+                                        });
+                                    }
+                                });
+                            }
 
-                        if (itemsHTML) {
-                            dayHTML += `
-                                <div class="meal-block">
-                                    <div class="meal-block-header ${blockClass}-header">
-                                        ${block.blockName === 'Breakfast' ? '🌅' : '🍽️'} ${block.blockName}
+                            if (itemsHTML) {
+                                dayHTML += `
+                                    <div class="meal-block">
+                                        <div class="meal-block-header lunch-header">
+                                            🍽️ Lunch Menu
+                                        </div>
+                                        <div class="meal-items">
+                                            ${itemsHTML}
+                                        </div>
                                     </div>
-                                    <div class="meal-items">
-                                        ${itemsHTML}
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    });
+                                `;
+                            }
+                        });
+                    }
                 }
 
                 dayHTML += '</div>';
                 contentElement.innerHTML += dayHTML;
             });
 
-            // Add price info (use data from first successful day)
+            // Add price info (show lunch price only)
             const firstDayWithData = weeklyData.weekData.find(d => d.success && d.data?.schoolPriceInfo);
             if (firstDayWithData?.data?.schoolPriceInfo) {
-                const pricesHTML = firstDayWithData.data.schoolPriceInfo
-                    .map(price => `
-                        <div class="price-item">
-                            <div class="meal-name">${price.name}</div>
-                            <div class="price">$${price.price.toFixed(2)}</div>
-                        </div>
-                    `).join('');
+                const lunchPrice = firstDayWithData.data.schoolPriceInfo.find(price => 
+                    price.name.toLowerCase() === 'lunch'
+                );
 
-                priceInfoElement.innerHTML = `
-                    <h3>💰 Daily Meal Prices</h3>
-                    <div class="prices">${pricesHTML}</div>
-                `;
-                priceInfoElement.style.display = 'block';
+                if (lunchPrice) {
+                    priceInfoElement.innerHTML = `
+                        <h3>💰 Lunch Price</h3>
+                        <div class="prices">
+                            <div class="price-item">
+                                <div class="meal-name">${lunchPrice.name}</div>
+                                <div class="price">${lunchPrice.price.toFixed(2)}</div>
+                            </div>
+                        </div>
+                    `;
+                    priceInfoElement.style.display = 'block';
+                }
             }
 
             // Show content
@@ -523,7 +493,7 @@
             
             contentElement.innerHTML = `
                 <div class="error">
-                    <h3>🚫 Unable to Load Weekly Menu</h3>
+                    <h3>🚫 Unable to Load Weekly Lunch Menu</h3>
                     <p>${message}</p>
                     <button onclick="loadWeeklyMenu()" style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
                         🔄 Try Again
