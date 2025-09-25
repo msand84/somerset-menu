@@ -3,60 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Somerset ES Lunch Menu</title>
+    <title>Somerset ES Menu</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f4f8;
             color: #333;
-            min-height: 100vh;
-            padding: 15px;
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 800px;
             margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             overflow: hidden;
         }
 
         .header {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            background: #4a90e2;
             color: white;
-            padding: 25px;
+            padding: 20px;
             text-align: center;
         }
 
         .header h1 {
-            font-size: 2.2rem;
-            margin-bottom: 8px;
+            font-size: 1.8rem;
+            margin: 0;
         }
 
-        .week-of {
-            font-size: 1.1rem;
-            opacity: 0.9;
+        .status {
+            background: #e8f5e8;
+            color: #2d5a2d;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #ddd;
         }
 
-        .status-indicator {
-            position: fixed;
-            top: 15px;
-            right: 15px;
-            padding: 6px 12px;
-            border-radius: 15px;
-            font-size: 0.75rem;
+        .days {
+            display: flex;
+        }
+
+        .day {
+            flex: 1;
+            border-right: 1px solid #eee;
+        }
+
+        .day:last-child {
+            border-right: none;
+        }
+
+        .day-header {
+            background: #f8f9fa;
+            padding: 15px;
             font-weight: bold;
-            z-index: 1000;
+            text-align: center;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .day-header.today {
             background: #d4edda;
             color: #155724;
-            border: 2px solid #c3e6cb;
+        }
+
+        .menu-items {
+            padding: 15px;
+        }
+
+        .menu-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+            line-height: 1.3;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .item-info {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .no-menu {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-style: italic;
         }
 
         .loading {
@@ -65,256 +107,58 @@
             color: #666;
         }
 
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .lunch-content {
-            padding: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-
-        .day-section {
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            transition: transform 0.3s ease;
-        }
-
-        .day-section:hover {
-            transform: translateY(-3px);
-        }
-
-        .day-section.today {
-            border: 3px solid #28a745;
-            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
-        }
-
-        .day-header {
-            padding: 15px;
-            color: white;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-align: center;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .day-header.today {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-        }
-
-        .lunch-items {
-            padding: 15px;
-        }
-
-        .menu-item {
-            padding: 12px;
-            margin: 8px 0;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid #dee2e6;
-            display: flex;
-            align-items: center;
-        }
-
-        .item-icon {
-            width: 35px;
-            height: 35px;
-            border-radius: 8px;
-            margin-right: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            flex-shrink: 0;
-        }
-
-        .entree-icon { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
-        .fruit-icon { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
-        .vegetable-icon { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
-        .milk-icon { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
-
-        .item-details {
-            flex-grow: 1;
-        }
-
-        .item-details h3 {
-            font-size: 1rem;
-            margin-bottom: 5px;
-            color: #333;
-            line-height: 1.3;
-        }
-
-        .item-badges {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-top: 5px;
-        }
-
-        .badge {
-            background: #e9ecef;
-            color: #495057;
-            padding: 2px 6px;
-            border-radius: 10px;
-            font-size: 0.7rem;
-            font-weight: 500;
-        }
-
-        .badge.vegetarian { background: #d4edda; color: #155724; }
-        .badge.vegan { background: #d1ecf1; color: #0c5460; }
-        .badge.gluten-free { background: #fff3cd; color: #856404; }
-        .badge.whole-grain { background: #f8d7da; color: #721c24; }
-
-        .nutrition {
-            font-size: 0.75rem;
-            color: #666;
-            margin-top: 3px;
-        }
-
-        .no-menu {
-            padding: 30px;
-            text-align: center;
-            color: #666;
-            font-style: italic;
-        }
-
-        .last-updated {
-            text-align: center;
-            padding: 15px;
-            color: #666;
-            font-size: 0.85rem;
-            background: #f8f9fa;
-            border-top: 1px solid #e9ecef;
-        }
-
         .error {
             text-align: center;
-            padding: 40px;
-            color: #dc3545;
+            padding: 30px;
+            color: #d32f2f;
         }
 
-        @media (max-width: 768px) {
-            .lunch-content {
-                grid-template-columns: 1fr;
-                padding: 15px;
+        .footer {
+            background: #f8f9fa;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        @media (max-width: 600px) {
+            .days {
+                flex-direction: column;
             }
-            
-            .header h1 {
-                font-size: 1.8rem;
+            .day {
+                border-right: none;
+                border-bottom: 1px solid #eee;
             }
-            
-            .status-indicator {
-                position: static;
-                margin: 10px auto;
-                display: block;
-                text-align: center;
-                width: fit-content;
+            .day:last-child {
+                border-bottom: none;
             }
         }
     </style>
 </head>
 <body>
-    <div class="status-indicator" id="status-indicator">🟢 Live Lunch Data</div>
-    
     <div class="container">
         <div class="header">
-            <h1>🍽️ Somerset Elementary School</h1>
-            <div class="week-of" id="week-of">Main Dishes</div>
+            <h1>🍽️ Somerset Elementary</h1>
         </div>
+        
+        <div class="status" id="status">Loading menu...</div>
 
         <div id="loading" class="loading">
-            <div class="spinner"></div>
             <p>Loading main dishes...</p>
         </div>
 
-        <div id="lunch-content" class="lunch-content" style="display: none;">
-            <!-- Lunch content will be loaded here -->
+        <div id="content" class="days" style="display: none;">
+            <!-- Content will load here -->
         </div>
 
-        <div class="last-updated" id="last-updated">
-            Last updated: <span id="update-time"></span>
+        <div class="footer" id="footer">
+            Last updated: <span id="update-time">--</span>
         </div>
     </div>
 
     <script>
-        const BASE_URL = window.location.origin;
-        const FUNCTION_URL = `${BASE_URL}/.netlify/functions/menu`;
+        const FUNCTION_URL = window.location.origin + '/.netlify/functions/menu';
         
-        function updateStatus(type, message) {
-            const indicator = document.getElementById('status-indicator');
-            indicator.textContent = message;
-            
-            if (type === 'success') {
-                indicator.style.background = '#d4edda';
-                indicator.style.color = '#155724';
-                indicator.style.borderColor = '#c3e6cb';
-            } else if (type === 'error') {
-                indicator.style.background = '#f8d7da';
-                indicator.style.color = '#721c24';
-                indicator.style.borderColor = '#f5c6cb';
-            } else {
-                indicator.style.background = '#fff3cd';
-                indicator.style.color = '#856404';
-                indicator.style.borderColor = '#ffeaa7';
-            }
-        }
-
-        function getItemIcon(itemType) {
-            switch (itemType.toLowerCase()) {
-                case 'entree': return '🍽️';
-                case 'fruit': return '🍎';
-                case 'vegetable': return '🥕';
-                case 'milk': return '🥛';
-                default: return '🍽️';
-            }
-        }
-
-        function getBadgeClass(badgeName) {
-            switch (badgeName.toLowerCase()) {
-                case 'vegetarian': return 'vegetarian';
-                case 'vegan': return 'vegan';
-                case 'glutenfree': return 'gluten-free';
-                case 'wholegrain': return 'whole-grain';
-                default: return '';
-            }
-        }
-
-        function buildMenuItem(item) {
-            const calories = item.nutritionals?.find(n => n.name === 'Calories')?.value || 0;
-            const nutritionText = calories > 0 ? `${calories} cal` : '';
-            
-            const badges = (item.badges || [])
-                .filter(badge => badge.defaultValue)
-                .map(badge => `<span class="badge ${getBadgeClass(badge.name)}">${badge.defaultValue}</span>`)
-                .join('');
-
-            return `
-                <div class="menu-item">
-                    <div class="item-icon ${item.item_Type.toLowerCase()}-icon">${getItemIcon(item.item_Type)}</div>
-                    <div class="item-details">
-                        <h3>${item.item_Name}</h3>
-                        <div class="item-badges">${badges}</div>
-                        ${nutritionText ? `<div class="nutrition">${nutritionText}</div>` : ''}
-                    </div>
-                </div>
-            `;
-        }
-
         function isToday(dateStr) {
             const today = new Date();
             const [month, day, year] = dateStr.split('-');
@@ -322,71 +166,84 @@
             return today.toDateString() === itemDate.toDateString();
         }
 
-        async function fetchLunchMenu() {
-            updateStatus('loading', '🔄 Fetching lunch menus...');
-            
-            try {
-                const response = await fetch(FUNCTION_URL);
-                
-                if (!response.ok) {
-                    throw new Error(`Server responded with status: ${response.status}`);
+        function buildMenuItem(item) {
+            let badges = '';
+            if (item.badges) {
+                const badgeList = [];
+                item.badges.forEach(badge => {
+                    if (badge.defaultValue) {
+                        badgeList.push(badge.defaultValue);
+                    }
+                });
+                if (badgeList.length > 0) {
+                    badges = ' • ' + badgeList.join(', ');
                 }
-                
-                const result = await response.json();
-                
-                if (!result.success) {
-                    throw new Error(result.error || 'Unknown server error');
-                }
-                
-                updateStatus('success', '🟢 Live lunch data loaded');
-                return result;
-                
-            } catch (error) {
-                updateStatus('error', '🔴 Connection failed');
-                throw error;
             }
+
+            const calories = item.nutritionals?.find(n => n.name === 'Calories')?.value || 0;
+            const calorieText = calories > 0 ? ` (${calories} cal)` : '';
+
+            return `
+                <div class="menu-item">
+                    <div class="item-name">${item.item_Name}</div>
+                    <div class="item-info">${calorieText}${badges}</div>
+                </div>
+            `;
         }
 
-        function displayLunchMenu(weeklyData) {
-            const weekOfElement = document.getElementById('week-of');
-            const contentElement = document.getElementById('lunch-content');
-            const loadingElement = document.getElementById('loading');
-
-            weekOfElement.textContent = `Main Dishes - ${weeklyData.weekOf}`;
-            contentElement.innerHTML = '';
-
-            weeklyData.weekData.forEach(dayData => {
-                const todayClass = isToday(dayData.date) ? 'today' : '';
-                const dayHeaderClass = isToday(dayData.date) ? 'today' : '';
+        async function loadMenu() {
+            const statusEl = document.getElementById('status');
+            const loadingEl = document.getElementById('loading');
+            const contentEl = document.getElementById('content');
+            const updateTimeEl = document.getElementById('update-time');
+            
+            try {
+                statusEl.textContent = 'Loading...';
+                statusEl.style.background = '#fff3cd';
+                statusEl.style.color = '#856404';
                 
-                let dayHTML = `
-                    <div class="day-section ${todayClass}">
-                        <div class="day-header ${dayHeaderClass}">
-                            ${dayData.dayName}
-                            <br><small style="font-weight: normal; opacity: 0.9;">${dayData.fullDate.replace(dayData.dayName + ', ', '')}</small>
-                        </div>
-                `;
+                const response = await fetch(FUNCTION_URL);
+                const result = await response.json();
 
-                if (!dayData.success || !dayData.data?.menuSchedules?.length) {
-                    dayHTML += '<div class="no-menu">No main dishes available</div>';
-                } else {
-                    const menuSchedule = dayData.data.menuSchedules[0];
-                    const lunchBlocks = menuSchedule.menuBlocks.filter(block => 
-                        block.blockName.toLowerCase() === 'lunch'
-                    );
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load menu');
+                }
+
+                statusEl.textContent = '✓ Live data loaded';
+                statusEl.style.background = '#d4edda';
+                statusEl.style.color = '#155724';
+
+                let contentHTML = '';
+                
+                result.weekData.forEach(dayData => {
+                    const todayClass = isToday(dayData.date) ? 'today' : '';
                     
-                    if (lunchBlocks.length === 0) {
-                        dayHTML += '<div class="no-menu">No lunch menu available</div>';
+                    contentHTML += `
+                        <div class="day">
+                            <div class="day-header ${todayClass}">
+                                ${dayData.dayName}
+                                <br><small>${dayData.fullDate.replace(dayData.dayName + ', ', '')}</small>
+                            </div>
+                            <div class="menu-items">
+                    `;
+
+                    if (!dayData.success || !dayData.data?.menuSchedules?.length) {
+                        contentHTML += '<div class="no-menu">No menu available</div>';
                     } else {
-                        let itemsHTML = '';
+                        const menuSchedule = dayData.data.menuSchedules[0];
+                        const lunchBlocks = menuSchedule.menuBlocks.filter(block => 
+                            block.blockName.toLowerCase() === 'lunch'
+                        );
+                        
+                        let hasItems = false;
                         lunchBlocks.forEach(block => {
                             if (block.cafeteriaLineList?.data) {
                                 block.cafeteriaLineList.data.forEach(line => {
                                     if (line.foodItemList?.data) {
                                         line.foodItemList.data.forEach(item => {
-                                            // Only show main dishes (entrees)
                                             if (item.item_Type && item.item_Type.toLowerCase() === 'entree') {
-                                                itemsHTML += buildMenuItem(item);
+                                                contentHTML += buildMenuItem(item);
+                                                hasItems = true;
                                             }
                                         });
                                     }
@@ -394,62 +251,51 @@
                             }
                         });
 
-                        if (itemsHTML) {
-                            dayHTML += `<div class="lunch-items">${itemsHTML}</div>`;
-                        } else {
-                            dayHTML += '<div class="no-menu">No main dishes available</div>';
+                        if (!hasItems) {
+                            contentHTML += '<div class="no-menu">No main dishes available</div>';
                         }
                     }
-                }
 
-                dayHTML += '</div>';
-                contentElement.innerHTML += dayHTML;
-            });
+                    contentHTML += `
+                            </div>
+                        </div>
+                    `;
+                });
 
-            loadingElement.style.display = 'none';
-            contentElement.style.display = 'grid';
-        }
-
-        function displayError(message) {
-            const contentElement = document.getElementById('lunch-content');
-            const loadingElement = document.getElementById('loading');
-            
-            contentElement.innerHTML = `
-                <div class="error">
-                    <h3>🚫 Unable to Load Main Dishes</h3>
-                    <p>${message}</p>
-                    <button onclick="loadLunchMenu()" style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">
-                        🔄 Try Again
-                    </button>
-                </div>
-            `;
-            
-            loadingElement.style.display = 'none';
-            contentElement.style.display = 'grid';
-        }
-
-        async function loadLunchMenu() {
-            try {
-                const weeklyData = await fetchLunchMenu();
-                displayLunchMenu(weeklyData);
+                contentEl.innerHTML = contentHTML;
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'flex';
                 
-                document.getElementById('update-time').textContent = new Date().toLocaleTimeString();
-                
+                updateTimeEl.textContent = new Date().toLocaleTimeString();
+
             } catch (error) {
-                console.error('Error loading lunch menu:', error);
-                displayError(error.message);
-                document.getElementById('update-time').textContent = new Date().toLocaleTimeString() + ' (error)';
+                console.error('Error:', error);
+                
+                statusEl.textContent = '✗ Connection failed';
+                statusEl.style.background = '#f8d7da';
+                statusEl.style.color = '#721c24';
+                
+                contentEl.innerHTML = `
+                    <div class="error">
+                        <h3>Unable to Load Menu</h3>
+                        <p>${error.message}</p>
+                        <button onclick="loadMenu()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+                
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'flex';
+                updateTimeEl.textContent = new Date().toLocaleTimeString() + ' (error)';
             }
         }
 
-        // Initial load
-        loadLunchMenu();
+        // Load menu on page load
+        loadMenu();
 
-        // Auto-refresh every 2 hours
-        setInterval(loadLunchMenu, 2 * 60 * 60 * 1000);
-
-        // Manual refresh
-        window.refreshMenu = loadLunchMenu;
+        // Auto-refresh every 4 hours (less frequent for performance)
+        setInterval(loadMenu, 4 * 60 * 60 * 1000);
     </script>
 </body>
 </html>
