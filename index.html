@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Somerset ES Menu</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f4f8;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #4a90e2;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .status {
+            background: #e8f5e8;
+            color: #2d5a2d;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .days {
+            display: block;
+        }
+
+        .day {
+            background: white;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .day-header {
+            background: #f8f9fa;
+            padding: 15px;
+            font-weight: bold;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+            font-size: 1.1rem;
+        }
+
+        .day-header.today {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .menu-items {
+            padding: 15px;
+        }
+
+        .menu-item {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.95rem;
+            line-height: 1.3;
+        }
+
+        .menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-name {
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .item-info {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .no-menu {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .error {
+            text-align: center;
+            padding: 30px;
+            color: #d32f2f;
+        }
+
+        .footer {
+            background: #f8f9fa;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        .day:last-child {
+            margin-bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🍽️ Somerset Elementary</h1>
+        </div>
+        
+        <div class="status" id="status">Loading menu...</div>
+
+        <div id="loading" class="loading">
+            <p>Loading main dishes...</p>
+        </div>
+
+        <div id="content" class="days" style="display: none;">
+            <!-- Content will load here -->
+        </div>
+
+        <div class="footer" id="footer">
+            Last updated: <span id="update-time">--</span>
+        </div>
+    </div>
+
+    <script>
+        const FUNCTION_URL = window.location.origin + '/api/menu';
+        
+        function isToday(dateStr) {
+            const today = new Date();
+            const [month, day, year] = dateStr.split('-');
+            const itemDate = new Date(year, month - 1, day);
+            return today.toDateString() === itemDate.toDateString();
+        }
+
+        function buildMenuItem(item) {
+            let badges = '';
+            if (item.badges) {
+                const badgeList = [];
+                item.badges.forEach(badge => {
+                    if (badge.defaultValue) {
+                        badgeList.push(badge.defaultValue);
+                    }
+                });
+                if (badgeList.length > 0) {
+                    badges = ' • ' + badgeList.join(', ');
+                }
+            }
+
+            const calories = item.nutritionals?.find(n => n.name === 'Calories')?.value || 0;
+            const calorieText = calories > 0 ? ` (${calories} cal)` : '';
+
+            return `
+                <div class="menu-item">
+                    <div class="item-name">${item.item_Name}</div>
+                    <div class="item-info">${calorieText}${badges}</div>
+                </div>
+            `;
+        }
+
+        async function loadMenu() {
+            const statusEl = document.getElementById('status');
+            const loadingEl = document.getElementById('loading');
+            const contentEl = document.getElementById('content');
+            const updateTimeEl = document.getElementById('update-time');
+            
+            try {
+                statusEl.textContent = 'Loading...';
+                statusEl.style.background = '#fff3cd';
+                statusEl.style.color = '#856404';
+                
+                const response = await fetch(FUNCTION_URL);
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load menu');
+                }
+
+                statusEl.textContent = '✓ Live data loaded';
+                statusEl.style.background = '#d4edda';
+                statusEl.style.color = '#155724';
+
+                let contentHTML = '';
+                
+                result.weekData.forEach(dayData => {
+                    const todayClass = isToday(dayData.date) ? 'today' : '';
+                    
+                    contentHTML += `
+                        <div class="day">
+                            <div class="day-header ${todayClass}">
+                                ${dayData.dayName}
+                                <br><small>${dayData.fullDate.replace(dayData.dayName + ', ', '')}</small>
+                            </div>
+                            <div class="menu-items">
+                    `;
+
+                    if (!dayData.success || !dayData.data?.menuSchedules?.length) {
+                        contentHTML += '<div class="no-menu">No menu available</div>';
+                    } else {
+                        const menuSchedule = dayData.data.menuSchedules[0];
+                        const lunchBlocks = menuSchedule.menuBlocks.filter(block => 
+                            block.blockName.toLowerCase() === 'lunch'
+                        );
+                        
+                        let hasItems = false;
+                        lunchBlocks.forEach(block => {
+                            if (block.cafeteriaLineList?.data) {
+                                block.cafeteriaLineList.data.forEach(line => {
+                                    if (line.foodItemList?.data) {
+                                        line.foodItemList.data.forEach(item => {
+                                            if (item.item_Type && item.item_Type.toLowerCase() === 'entree') {
+                                                contentHTML += buildMenuItem(item);
+                                                hasItems = true;
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+
+                        if (!hasItems) {
+                            contentHTML += '<div class="no-menu">No main dishes available</div>';
+                        }
+                    }
+
+                    contentHTML += `
+                            </div>
+                        </div>
+                    `;
+                });
+
+                contentEl.innerHTML = contentHTML;
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'flex';
+                
+                updateTimeEl.textContent = new Date().toLocaleTimeString();
+
+            } catch (error) {
+                console.error('Error:', error);
+                
+                statusEl.textContent = '✗ Connection failed';
+                statusEl.style.background = '#f8d7da';
+                statusEl.style.color = '#721c24';
+                
+                contentEl.innerHTML = `
+                    <div class="error">
+                        <h3>Unable to Load Menu</h3>
+                        <p>${error.message}</p>
+                        <button onclick="loadMenu()" style="padding: 8px 16px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                            Try Again
+                        </button>
+                    </div>
+                `;
+                
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'flex';
+                updateTimeEl.textContent = new Date().toLocaleTimeString() + ' (error)';
+            }
+        }
+
+        // Load menu on page load
+        loadMenu();
+
+        // Auto-refresh every 4 hours (less frequent for performance)
+        setInterval(loadMenu, 4 * 60 * 60 * 1000);
+    </script>
+</body>
+</html>
