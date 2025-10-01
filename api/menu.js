@@ -11,48 +11,40 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Get the next 5 school days (Monday-Friday), starting from today or next Monday
-    const getNextSchoolWeek = () => {
+    // Get upcoming school days (today through Friday, or next week if it's the weekend)
+    const getUpcomingSchoolDays = () => {
       const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset to start of day for comparison
       const currentDay = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
       
-      let startDate = new Date(today);
+      const upcomingDays = [];
       
-      // If it's Friday after school hours, Saturday, or Sunday, start from next Monday
-      if (currentDay === 0) { // Sunday
-        startDate.setDate(today.getDate() + 1); // Next Monday
-      } else if (currentDay === 6) { // Saturday
-        startDate.setDate(today.getDate() + 2); // Next Monday
-      } else if (currentDay === 5) { // Friday
-        // Check if it's late in the day (after 3 PM) - show next week
-        const hour = today.getHours();
-        if (hour >= 15) { // 3 PM or later
-          startDate.setDate(today.getDate() + 3); // Next Monday
+      // If it's Saturday (6) or Sunday (0), show next week (Mon-Fri)
+      if (currentDay === 0 || currentDay === 6) {
+        const nextMonday = new Date(today);
+        const daysUntilMonday = currentDay === 0 ? 1 : 2;
+        nextMonday.setDate(today.getDate() + daysUntilMonday);
+        
+        // Add Monday through Friday of next week
+        for (let i = 0; i < 5; i++) {
+          const date = new Date(nextMonday);
+          date.setDate(nextMonday.getDate() + i);
+          upcomingDays.push(date);
+        }
+      } 
+      // If it's a weekday (Mon-Fri), show today through Friday
+      else {
+        const daysUntilFriday = 5 - currentDay; // Days remaining until Friday
+        
+        // Add today through Friday
+        for (let i = 0; i <= daysUntilFriday; i++) {
+          const date = new Date(today);
+          date.setDate(today.getDate() + i);
+          upcomingDays.push(date);
         }
       }
-      // For Monday-Thursday (and Friday before 3 PM), start from today's week Monday
-      else {
-        // Find Monday of current week
-        const daysFromMonday = 1 - currentDay;
-        startDate.setDate(today.getDate() + daysFromMonday);
-      }
       
-      // If startDate is in the past (earlier than today), move to next Monday
-      if (startDate < today && currentDay >= 1 && currentDay <= 4) {
-        // We're in the middle of the week, use current week
-      } else if (startDate < today) {
-        startDate.setDate(today.getDate() + (8 - currentDay)); // Next Monday
-      }
-      
-      // Generate 5 school days starting from startDate
-      const weekDates = [];
-      for (let i = 0; i < 5; i++) {
-        const date = new Date(startDate);
-        date.setDate(startDate.getDate() + i);
-        weekDates.push(date);
-      }
-      
-      return weekDates;
+      return upcomingDays;
     };
 
     const formatApiDate = (date) => {
@@ -62,13 +54,13 @@ export default async function handler(req, res) {
       return `${month}-${day}-${year}`;
     };
 
-    const weekDates = getNextSchoolWeek();
+    const upcomingDays = getUpcomingSchoolDays();
     const weekMenuData = [];
     
-    console.log(`Fetching menu for: ${weekDates.map(d => formatApiDate(d)).join(', ')}`);
+    console.log(`Fetching menu for: ${upcomingDays.map(d => formatApiDate(d)).join(', ')}`);
     
     // Fetch menu data for each day
-    for (const date of weekDates) {
+    for (const date of upcomingDays) {
       const apiDate = formatApiDate(date);
       const apiUrl = `https://api.mealviewer.com/api/v4/school/SomersetES/${apiDate}/${apiDate}/`;
       
@@ -122,7 +114,7 @@ export default async function handler(req, res) {
       success: true,
       weekData: weekMenuData,
       fetchedAt: new Date().toISOString(),
-      weekOf: weekDates[0].toLocaleDateString('en-US', { 
+      weekOf: upcomingDays[0].toLocaleDateString('en-US', { 
         month: 'long', 
         day: 'numeric',
         year: 'numeric'
