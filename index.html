@@ -94,6 +94,30 @@
             color: #666;
         }
 
+        .alt-tag {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 1px 6px;
+            font-size: 0.7rem;
+            font-weight: normal;
+            color: #555;
+            background: #eef1f4;
+            border-radius: 4px;
+            vertical-align: middle;
+        }
+
+        .side-group {
+            padding: 6px 0;
+            font-size: 0.85rem;
+            color: #555;
+            line-height: 1.3;
+        }
+
+        .side-label {
+            font-weight: bold;
+            color: #333;
+        }
+
         .no-menu {
             padding: 20px;
             text-align: center;
@@ -135,7 +159,7 @@
         <div class="status" id="status">Loading menu...</div>
 
         <div id="loading" class="loading">
-            <p>Loading main dishes...</p>
+            <p>Loading lunch menu...</p>
         </div>
 
         <div id="content" class="days" style="display: none;">
@@ -174,12 +198,68 @@
             const calories = item.nutritionals?.find(n => n.name === 'Calories')?.value || 0;
             const calorieText = calories > 0 ? ` (${calories} cal)` : '';
 
+            const isAlternate = (item.item_Type || '').toLowerCase() !== 'entree';
+            const altTag = isAlternate ? ' <span class="alt-tag">Alternate</span>' : '';
+
             return `
                 <div class="menu-item">
-                    <div class="item-name">${item.item_Name}</div>
+                    <div class="item-name">${item.item_Name}${altTag}</div>
                     <div class="item-info">${calorieText}${badges}</div>
                 </div>
             `;
+        }
+
+        // Item types that aren't real menu choices (milk is served daily; condiments are extras)
+        const SKIP_TYPES = ['milk', 'condiment'];
+
+        // Friendlier labels for side categories; unknown types fall back to their raw name
+        const SIDE_LABELS = { vegetable: 'Veggies', fruit: 'Fruit' };
+
+        // Collect every lunch item, de-duplicated, split into main options
+        // (Entree, Alternate Entree, any other "...entree" type) and side groups.
+        function groupLunchItems(lunchBlocks) {
+            const seen = new Set();
+            const mains = [];
+            const sideMap = new Map();
+
+            lunchBlocks.forEach(block => {
+                (block.cafeteriaLineList?.data || []).forEach(line => {
+                    (line.foodItemList?.data || []).forEach(item => {
+                        const name = (item.item_Name || '').trim();
+                        if (!name) return;
+
+                        const key = item.item_Id ?? name;
+                        if (seen.has(key)) return;
+                        seen.add(key);
+
+                        const type = (item.item_Type || 'Other').trim();
+                        const typeKey = type.toLowerCase();
+                        if (SKIP_TYPES.includes(typeKey)) return;
+
+                        if (typeKey.includes('entree')) {
+                            mains.push(item);
+                        } else {
+                            if (!sideMap.has(typeKey)) {
+                                sideMap.set(typeKey, {
+                                    label: SIDE_LABELS[typeKey] || type,
+                                    order: item.item_Type_Order_Id ?? 99,
+                                    items: []
+                                });
+                            }
+                            sideMap.get(typeKey).items.push(item);
+                        }
+                    });
+                });
+            });
+
+            // Regular entrees first, then alternates; keep MealViewer's order within each
+            mains.sort((a, b) =>
+                (a.item_Type_Order_Id ?? 99) - (b.item_Type_Order_Id ?? 99) ||
+                (a.item_Order_Id ?? 99) - (b.item_Order_Id ?? 99)
+            );
+
+            const sideGroups = [...sideMap.values()].sort((a, b) => a.order - b.order);
+            return { mains, sideGroups };
         }
 
         async function loadMenu() {
@@ -225,24 +305,23 @@
                             block.blockName.toLowerCase() === 'lunch'
                         );
                         
-                        let hasItems = false;
-                        lunchBlocks.forEach(block => {
-                            if (block.cafeteriaLineList?.data) {
-                                block.cafeteriaLineList.data.forEach(line => {
-                                    if (line.foodItemList?.data) {
-                                        line.foodItemList.data.forEach(item => {
-                                            if (item.item_Type && item.item_Type.toLowerCase() === 'entree') {
-                                                contentHTML += buildMenuItem(item);
-                                                hasItems = true;
-                                            }
-                                        });
-                                    }
-                                });
-                            }
+                        const { mains, sideGroups } = groupLunchItems(lunchBlocks);
+
+                        mains.forEach(item => {
+                            contentHTML += buildMenuItem(item);
                         });
 
-                        if (!hasItems) {
-                            contentHTML += '<div class="no-menu">No main dishes available</div>';
+                        sideGroups.forEach(group => {
+                            contentHTML += `
+                                <div class="side-group">
+                                    <span class="side-label">${group.label}:</span>
+                                    ${group.items.map(i => i.item_Name).join(', ')}
+                                </div>
+                            `;
+                        });
+
+                        if (mains.length === 0 && sideGroups.length === 0) {
+                            contentHTML += '<div class="no-menu">No lunch menu posted</div>';
                         }
                     }
 
